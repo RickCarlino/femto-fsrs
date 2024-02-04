@@ -193,14 +193,17 @@ export function createDeck(requestedRetentionRate: number) {
       const I = nextInterval(requestedRetentionRate, S);
       return { D, S, I };
     },
-    gradeCard(grade: Grade, card: Card): Card {
-      const fn =
-        grade === Grade.AGAIN
-          ? nextStabilityAfterForgetting
-          : nextStabilityAfterRecall;
+    gradeCard(card: Card, daysSinceReview: number, grade: Grade): Card {
+      // Calculate current retrievability based on days since last review
+      const currentRetrievability = retrievability(daysSinceReview, card.S);
       const D = nextDifficulty(card.D, grade);
-      const S = fn(D, card.S, requestedRetentionRate, grade);
-      const I = nextInterval(requestedRetentionRate, S);
+      let S: number;
+      if (grade === Grade.AGAIN) {
+        S = nextStabilityAfterForgetting(D, card.S, currentRetrievability);
+      } else {
+        S = nextStabilityAfterRecall(D, card.S, currentRetrievability, grade);
+      }
+      var I = nextInterval(requestedRetentionRate, S);
       return { D, S, I };
     },
   };
@@ -219,7 +222,7 @@ const ratings = [
 let card: Card = newCard(ratings[0]);
 for (let i = 0; i < ratings.length; i++) {
   if (card) {
-    card = gradeCard(ratings[i], card);
+    card = gradeCard(card, card.I, ratings[i]);
   } else {
     card = newCard(ratings[i]);
   }
