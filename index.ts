@@ -11,6 +11,9 @@ export enum Grade {
   EASY = 4,
 }
 export type DeckParams = {
+  /** Percentage of cards that will succeed upon review.
+   * Default value is 0.9.
+   * Lower numbers mean fewer reviews but more more failures. */
   requestedRetentionRate: number;
   w: number[];
 };
@@ -27,7 +30,8 @@ const DEFAULT_PARAMS = {
   w: DEFAULT_W,
 };
 
-/** For simplicity, a deck will have the same requested retention rate. */
+/** A deck creates functions that share the same configuration options,
+ * such as a 'w' param and requested retention rate. */
 export function createDeck(params = DEFAULT_PARAMS) {
   const w = params.w || DEFAULT_PARAMS.w;
   const requestedRetentionRate =

@@ -19,7 +19,8 @@ const DEFAULT_PARAMS = {
     requestedRetentionRate: 0.9,
     w: DEFAULT_W,
 };
-/** For simplicity, a deck will have the same requested retention rate. */
+/** A deck creates functions that share the same configuration options,
+ * such as a 'w' param and requested retention rate. */
 function createDeck(params = DEFAULT_PARAMS) {
     const w = params.w || DEFAULT_PARAMS.w;
     const requestedRetentionRate = params.requestedRetentionRate || DEFAULT_PARAMS.requestedRetentionRate;
@@ -146,3 +147,4 @@ function createDeck(params = DEFAULT_PARAMS) {
     };
 }
 exports.createDeck = createDeck;
+//# sourceMappingURL=index.js.map
