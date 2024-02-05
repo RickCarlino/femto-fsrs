@@ -13,7 +13,7 @@ I am building this library as a replacement to SM-2 in [KoalaSRS](https://github
 # Usage
 
 ```typescript
-import { Card, Grade, createDeck } from "femto-fsrs";
+import { Grade, createDeck } from "femto-fsrs";
 
 // === Create a new deck
 const { newCard, gradeCard } = createDeck();
@@ -26,9 +26,9 @@ const myCard = newCard(initialGrade);
 //     Returns a new card that replaces the old one.
 const daysSinceReview = 2;
 const nextCard = gradeCard(myCard, daysSinceReview, Grade.EASY);
-// The "I" attribute represents the "I" variable in the paper.
-// It represents the next review date at which the probability
-// of success if 90% (assuming you used default parameters).
+// The "I" attribute represents "I" like in the FSRS paper.
+// It is the next review date at which the probability
+// of success is 90% (assuming you used default parameters).
 const nextReview = nextCard.I.toFixed(2);
 // Print results:
 console.log(`Card will be due for review in ${nextReview} day(s)`);
