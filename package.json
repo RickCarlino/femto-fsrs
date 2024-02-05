@@ -1,0 +1,13 @@
+{
+  "name": "femto-fsrs",
+  "version": "0.0.1",
+  "description": "A minimalistic implementation of FSRS 4.5 spaced repetition algorithm",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "npx tsx test.ts"
+  },
+  "keywords": ["spaced repetition", "fsrs"],
+  "author": "Rick Carlino",
+  "license": "MIT"
+}
