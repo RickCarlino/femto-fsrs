@@ -6,9 +6,10 @@ I am building this library as a replacement to SM-2 in [KoalaSRS](https://github
 
 # Features
 
- * Zero dependencies
- * Well annotated source code that (mostly) follows the paper.
- * Sensible defaults.
+- Zero dependencies
+- Well annotated source code that (mostly) follows the paper.
+- Sensible defaults.
+
 # Usage
 
 ```typescript
@@ -19,15 +20,24 @@ const { newCard, gradeCard } = createDeck();
 
 // === Initiate a new card with an initial grade of "GOOD":
 const initialGrade = Grade.GOOD;
-const myCard = newCar(initialGrade);
+const myCard = newCard(initialGrade);
 
 // === Grade the card as "easy" two days later.
 //     Returns a new card that replaces the old one.
 const daysSinceReview = 2;
-const nextCard = gradeCard(card, daysSinceReview, Grade.EASY);
-
+const nextCard = gradeCard(myCard, daysSinceReview, Grade.EASY);
+// The "I" attribute represents the "I" variable in the paper.
+// It represents the next review date at which the probability
+// of success if 90% (assuming you used default parameters).
+const nextReview = nextCard.I.toFixed(2);
 // Print results:
-console.log(`Card will be due for review in ${nextCard.I} day(s)`);
+console.log(`Card will be due for review in ${nextReview} day(s)`);
+```
+
+Result:
+
+```
+Card will be due for review in 16.63 day(s)
 ```
 
 # Installation
