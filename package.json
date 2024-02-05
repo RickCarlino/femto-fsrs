@@ -1,6 +1,6 @@
 {
   "name": "femto-fsrs",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "A minimalistic implementation of FSRS 4.5 spaced repetition algorithm",
   "main": "index.js",
   "scripts": {
