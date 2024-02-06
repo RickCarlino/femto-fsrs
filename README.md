@@ -4,6 +4,10 @@ A zero dependency implementation of the [FSRS 4.5](https://github.com/open-space
 
 I am building this library as a replacement to SM-2 in [KoalaSRS](https://github.com/RickCarlino/KoalaSRS).
 
+# Demo
+
+I made an HTML pen-and-paper demo [here](https://rickcarlino.com/srs.html). You can store facts on paper and use Femto-FSRS for scheduling, [just like Piotr Wozniak did in the 80s](https://www.supermemo.com/en/blog/the-true-history-of-spaced-repetition).
+
 # Features
 
 - Zero dependencies
