@@ -3,7 +3,13 @@ type Stability = number; // Number of days until 90% recall probability
 type Retrievability = number; // probability of recall
 type IntervalDays = number; // Days until ideal next review
 type DaysSinceReview = number;
-export type Card = { D: Difficulty; S: Stability; I: IntervalDays };
+
+export type DifficultyAndStability = { D: Difficulty; S: Stability };
+
+export interface Card extends DifficultyAndStability {
+  I: IntervalDays;
+}
+
 export enum Grade {
   AGAIN = 1,
   HARD = 2,
@@ -163,7 +169,11 @@ export function createDeck(params = DEFAULT_PARAMS) {
       const I = nextInterval(requestedRetentionRate, S);
       return { D, S, I };
     },
-    gradeCard(card: Card, daysSinceReview: number, grade: Grade): Card {
+    gradeCard(
+      card: DifficultyAndStability,
+      daysSinceReview: number,
+      grade: Grade
+    ): Card {
       // Calculate current retrievability based on days since last review
       const currentRetrievability = retrievability(daysSinceReview, card.S);
       const D = nextDifficulty(card.D, grade);

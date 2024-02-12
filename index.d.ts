@@ -1,11 +1,13 @@
 type Difficulty = number;
 type Stability = number;
 type IntervalDays = number;
-export type Card = {
+export type DifficultyAndStability = {
     D: Difficulty;
     S: Stability;
-    I: IntervalDays;
 };
+export interface Card extends DifficultyAndStability {
+    I: IntervalDays;
+}
 export declare enum Grade {
     AGAIN = 1,
     HARD = 2,
@@ -26,6 +28,6 @@ export declare function createDeck(params?: {
     w: number[];
 }): {
     newCard(grade: Grade): Card;
-    gradeCard(card: Card, daysSinceReview: number, grade: Grade): Card;
+    gradeCard(card: DifficultyAndStability, daysSinceReview: number, grade: Grade): Card;
 };
 export {};
