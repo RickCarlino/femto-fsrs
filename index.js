@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createDeck = exports.Grade = void 0;
+exports.Grade = void 0;
+exports.createDeck = createDeck;
 var Grade;
 (function (Grade) {
     Grade[Grade["AGAIN"] = 1] = "AGAIN";
@@ -8,143 +9,106 @@ var Grade;
     Grade[Grade["GOOD"] = 3] = "GOOD";
     Grade[Grade["EASY"] = 4] = "EASY";
 })(Grade || (exports.Grade = Grade = {}));
-// Constants for FSRS-4.5
 const DECAY = -0.5;
 const FACTOR = 19 / 81;
 const DEFAULT_W = [
-    0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
-    0.34, 1.26, 0.29, 2.61,
+    0.40255, // Initial interval/stability for AGAIN
+    1.18385, // Initial interval/stability for HARD
+    3.173, // Initial interval/stability for GOOD
+    15.69105, // Initial interval/stability for EASY
+    7.1949,
+    0.5345,
+    1.4604,
+    0.0046,
+    1.54575,
+    0.1192,
+    1.01925,
+    1.9395,
+    0.11,
+    0.29605,
+    2.2698,
+    0.2315,
+    2.9898,
+    0.51655,
+    0.6621,
 ];
 const DEFAULT_PARAMS = {
     requestedRetentionRate: 0.9,
-    w: DEFAULT_W,
+    w: [...DEFAULT_W],
+    maxStability: 36500,
 };
-/** A deck creates functions that share the same configuration options,
- * such as a 'w' param and requested retention rate. */
-function createDeck(params = DEFAULT_PARAMS) {
-    const w = params.w || DEFAULT_PARAMS.w;
-    const requestedRetentionRate = params.requestedRetentionRate || DEFAULT_PARAMS.requestedRetentionRate;
-    /**
-     * Calculates the retrievability after t days since the last review.
-     * @param {number} t - The number of days since the last review.
-     * @param {number} S - Stability (interval when R=90%).
-     * @returns {number} - Retrievability (probability of recall).
-     */
-    function retrievability(t, S) {
-        // Should return 0.9 when t = S
-        return Math.pow(1 + FACTOR * (t / S), DECAY);
-    }
-    /**
-     * Calculates the next interval based on requested retention.
-     * @param {number} R - The requested retention rate.
-     * @param {number} S - Current stability.
-     * @returns {number} - The next interval in days.
-     */
-    function nextInterval(R, S) {
-        // I(r, S) = S when R = 0.9
-        return (S / FACTOR) * (Math.pow(R, 1 / DECAY) - 1);
-    }
-    /**
-     * Calculates initial stability after the first rating.
-     * @param {number} G - Grade (1: again, 2: hard, 3: good, 4: easy).
-     * @returns {number} - Initial stability.
-     */
-    function initialStability(G) {
-        return w[G - 1];
-    }
-    /**
-     * Calculates initial difficulty after the first rating.
-     * @param {number} G - Grade (1: again, 2: hard, 3: good, 4: easy).
-     * @returns {number} - Initial difficulty.
-     */
-    function initialDifficulty(G) {
-        const val = w[4] + (G - 3) * w[5];
-        return Math.max(1, Math.min(10, val));
-    }
-    /**
-     * Calculates new difficulty after review.
-     * @param {number} D - Current difficulty.
-     * @param {number} G - Grade (1: again, 2: hard, 3: good, 4: easy).
-     * @returns {number} - New difficulty.
-     */
-    function nextDifficulty(D, G) {
-        const val = w[7] * initialDifficulty(3) + (1 - w[7]) * (D - w[6] * (G - 3));
-        return Math.max(1, Math.min(10, val));
-    }
-    /**
-     * The stability after recall. Thanks, ts-fsrs.
-     * @param {number} d - Difficulty.
-     * @param {number} s - Current stability.
-     * @param {number} r - Retrievability.
-     * @param {number} g - Grade (1: again, 2: hard, 3: good, 4: easy).
-     * @returns {number} - New stability after recall.
-     */
-    function nextStabilityAfterRecall(d, s, r, g) {
-        const hard_penalty = Grade.HARD === g ? w[15] : 1;
-        const easy_bound = Grade.EASY === g ? w[16] : 1;
-        return (s *
-            (1 +
-                Math.exp(w[8]) *
-                    (11 - d) *
-                    Math.pow(s, -w[9]) *
-                    (Math.exp((1 - r) * w[10]) - 1) *
-                    hard_penalty *
-                    easy_bound));
-    }
-    /**
-     * Calculates stability after forgetting.
-     * @param {number} d - Difficulty.
-     * @param {number} s - Current stability.
-     * @param {number} r - Retrievability.
-     * @returns {number} - New stability after forgetting.
-     */
-    function nextStabilityAfterForgetting(d, s, r) {
-        return (w[11] *
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+function createDeck(params = {}) {
+    var _a, _b, _c;
+    const w = (_a = params.w) !== null && _a !== void 0 ? _a : DEFAULT_PARAMS.w;
+    if (w.length !== 19)
+        throw new Error("FSRS-5 expects a w-array of length 19.");
+    const requestedRetentionRate = (_b = params.requestedRetentionRate) !== null && _b !== void 0 ? _b : DEFAULT_PARAMS.requestedRetentionRate;
+    if (requestedRetentionRate <= 0 || requestedRetentionRate > 1)
+        throw new Error("requestedRetentionRate must lie in (0, 1].");
+    if (w[7] < 0 || w[7] > 1)
+        throw new Error("w[7] must lie in the range 0 ... 1 for mean-reversion.");
+    const MAX_S = (_c = params.maxStability) !== null && _c !== void 0 ? _c : DEFAULT_PARAMS.maxStability;
+    const retrievability = (t, S) => Math.pow(1 + FACTOR * (t / S), DECAY);
+    const nextInterval = (R, S) => {
+        const raw = (S / FACTOR) * (Math.pow(R, 1 / DECAY) - 1);
+        return Math.max(1, raw);
+    };
+    const initialStability = (G) => w[G - 1];
+    const initialDifficulty = (G) => {
+        const d0 = w[4] - Math.exp(w[5] * (G - 1)) + 1;
+        return clamp(d0, 1, 10);
+    };
+    const nextDifficulty = (D, G) => {
+        const delta = -w[6] * (G - 3);
+        const Dprime = D + delta * ((10 - D) / 9);
+        const target = initialDifficulty(Grade.EASY);
+        const Dnext = w[7] * target + (1 - w[7]) * Dprime;
+        return clamp(Dnext, 1, 10);
+    };
+    /* ------------------------- Stability updates ----------------------- */
+    const nextStabilityAfterRecall = (d, s, r, g) => {
+        const hardPenalty = g === Grade.HARD ? w[15] : 1;
+        const easyBoost = g === Grade.EASY ? w[16] : 1;
+        const multiplier = Math.exp(w[8]) *
+            (11 - d) *
+            Math.pow(s, -w[9]) *
+            (Math.exp((1 - r) * w[10]) - 1) *
+            hardPenalty *
+            easyBoost;
+        return clamp(s * (1 + multiplier), 0, MAX_S);
+    };
+    const nextStabilityAfterForgetting = (d, s, r) => {
+        const post = w[11] *
             Math.pow(d, -w[12]) *
             (Math.pow(s + 1, w[13]) - 1) *
-            Math.exp((1 - r) * w[14]));
-    }
-    // // A simple Left vs. right assertion for numbers:
-    // function assert(a: number, b: number, epsilon: number, message: string) {
-    //   if (Math.abs(a - b) > epsilon) {
-    //     console.table({
-    //       a,
-    //       b,
-    //       diff: Math.abs(a - b),
-    //       epsilon,
-    //     });
-    //     throw new Error(message);
-    //   }
-    // }
-    // assert(retrievability(1, 1), 0.9, 0.0, "R must equal 0.9 when t = S");
-    // assert(initialStability(Grade.AGAIN), w[0], 0.0, "AGAIN stability != w[0]");
-    // assert(initialStability(Grade.EASY), w[3], 0.0, "AGAIN stability != w[3]");
-    // assert(initialDifficulty(Grade.GOOD), w[4], 0.0, "GOOD difficulty != w[4]");
-    // assert(nextDifficulty(10, Grade.EASY), 9.1, 0.1, "nextDifficulty failure");
-    // assert(nextDifficulty(5, Grade.HARD), 5.85, 0.1, "nextDifficulty failure");
-    // assert(nextInterval(0.9, 2), 2, 0.01, "Expected I(r, S) = S when R = 0.9");
+            Math.exp((1 - r) * w[14]);
+        return clamp(post, 0, MAX_S);
+    };
     return {
-        newCard(grade) {
-            const D = initialDifficulty(grade);
-            const S = initialStability(grade);
+        newCard(firstGrade) {
+            const D = initialDifficulty(firstGrade);
+            const S = clamp(initialStability(firstGrade), 0, MAX_S);
             const I = nextInterval(requestedRetentionRate, S);
             return { D, S, I };
         },
+        /** Apply a review result to an existing card. */
         gradeCard(card, daysSinceReview, grade) {
-            // Calculate current retrievability based on days since last review
-            const currentRetrievability = retrievability(daysSinceReview, card.S);
             const D = nextDifficulty(card.D, grade);
             let S;
-            if (grade === Grade.AGAIN) {
-                S = nextStabilityAfterForgetting(D, card.S, currentRetrievability);
+            if (daysSinceReview < 1) {
+                S = card.S * Math.exp(w[17] * (grade - 3 + w[18]));
             }
             else {
-                S = nextStabilityAfterRecall(D, card.S, currentRetrievability, grade);
+                const R = retrievability(daysSinceReview, card.S);
+                S =
+                    grade === Grade.AGAIN
+                        ? nextStabilityAfterForgetting(D, card.S, R)
+                        : nextStabilityAfterRecall(D, card.S, R, grade);
             }
-            var I = nextInterval(requestedRetentionRate, S);
+            const I = nextInterval(requestedRetentionRate, clamp(S, 0, MAX_S));
             return { D, S, I };
         },
     };
 }
-exports.createDeck = createDeck;
 //# sourceMappingURL=index.js.map

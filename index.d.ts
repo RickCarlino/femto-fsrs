@@ -14,20 +14,14 @@ export declare enum Grade {
     GOOD = 3,
     EASY = 4
 }
-export type DeckParams = {
-    /** Percentage of cards that will succeed upon review.
-     * Default value is 0.9.
-     * Lower numbers mean fewer reviews but more more failures. */
+export interface DeckParams {
     requestedRetentionRate: number;
     w: number[];
-};
-/** A deck creates functions that share the same configuration options,
- * such as a 'w' param and requested retention rate. */
-export declare function createDeck(params?: {
-    requestedRetentionRate: number;
-    w: number[];
-}): {
-    newCard(grade: Grade): Card;
-    gradeCard(card: DifficultyAndStability, daysSinceReview: number, grade: Grade): Card;
+    maxStability?: number;
+}
+export declare function createDeck(params?: Partial<DeckParams>): {
+    readonly newCard: (firstGrade: Grade) => Card;
+    /** Apply a review result to an existing card. */
+    readonly gradeCard: (card: DifficultyAndStability, daysSinceReview: number, grade: Grade) => Card;
 };
 export {};

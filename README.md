@@ -1,8 +1,8 @@
 # Femto-FSRS
 
-A zero dependency implementation of the [FSRS 4.5](https://github.com/open-spaced-repetition) spaced repetition algorithm.
+A zero dependency implementation of the [FSRS 5](https://github.com/open-spaced-repetition) spaced repetition algorithm.
 
-I am building this library as a replacement to SM-2 in [KoalaSRS](https://github.com/RickCarlino/KoalaSRS).
+This is the scheduler used by [Koala.Cards](https://github.com/RickCarlino/KoalaSRS).
 
 # Demo
 
@@ -11,7 +11,7 @@ I made an HTML pen-and-paper demo [here](https://rickcarlino.com/srs.html). You 
 # Features
 
 - Zero dependencies
-- Well annotated source code that (mostly) follows the paper.
+- Follows the paper.
 - Sensible defaults.
 
 # Usage
